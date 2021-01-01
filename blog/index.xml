@@ -1,0 +1,256 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blog | wtemple.info</title>
+    <link>https://www.wtemple.info/blog/</link>
+      <atom:link href="https://www.wtemple.info/blog/index.xml" rel="self" type="application/rss+xml" />
+    <description>Blog</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>© William Temple 2020</copyright>
+    <image>
+      <url>https://www.wtemple.info/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>Blog</title>
+      <link>https://www.wtemple.info/blog/</link>
+    </image>
+    
+    <item>
+      <title>Lifecycle of a BlockyTalky 3 Program</title>
+      <link>https://www.wtemple.info/blog/lifecycle-bt3-program/</link>
+      <pubDate>Thu, 13 Jun 2019 00:00:00 +0000</pubDate>
+      <guid>https://www.wtemple.info/blog/lifecycle-bt3-program/</guid>
+      <description>&lt;p&gt;In February 2018, I started working seriously on the &lt;a href=&#34;https://github.com/LaboratoryForPlayfulComputation/pxt-pi&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;BlockyTalky 3&lt;/a&gt;
+project, a web-based physical computing editor for linux systems. We initially
+chose to target the Raspberry Pi, and we chose to use &lt;a href=&#34;https://github.com/Microsoft/pxt&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Microsoft
+MakeCode&lt;/a&gt; as the base of the web IDE. MakeCode is a relatively mature
+blocks-based code editor (one of the official platforms of the BBC micro:bit),
+and, for a while, it made a lot of sense to build off of it instead of creating
+a new editor from scratch.&lt;/p&gt;
+&lt;p&gt;However, MakeCode was designed to compile users’ Static TypeScript code to
+native ARM machine code assemblies to be flashed to the device over USB or a
+programming interface. In our case, the Raspberry Pi is a fully-functional
+Linux device, so we are able to run whatever Linux software we can manage to
+compile for it as long as it is within the Pi’s ability to run it. So, we
+decided to simply transmit the user’s code from the web editor to the Raspberry
+Pi for execution. This approach had a few major benefits:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Running the code in a full Linux environment would allow us to rapidly
+develop integrations with the rich ecosystem of Linux and Node software.&lt;/li&gt;
+&lt;li&gt;We wouldn’t have to build complex C/C++ libraries to leverage the hardware
+of the Raspberry Pi.&lt;/li&gt;
+&lt;li&gt;We would be able to use the Pi itself to apply transformations to user code
+and archive it for research purposes.&lt;/li&gt;
+&lt;/ol&gt;
+&lt;p&gt;It took a few months of planning, trial, and error to nail down exactly how
+this program lifecycle would work. We finally settled on a procedure with three
+major steps. This is how a user’s program in the browser eventually executes on
+the BlockyTalky Unit (Raspberry Pi).&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-blockytalky-document-flow&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./featured.png&#34; data-caption=&#34;BlockyTalky Document Flow&#34;&gt;
+
+
+  &lt;img src=&#34;./featured.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption data-pre=&#34;Figure&amp;nbsp;&#34; data-post=&#34;:&amp;nbsp;&#34; class=&#34;numbered&#34;&gt;
+    BlockyTalky Document Flow
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;h2 id=&#34;editor&#34;&gt;Editor&lt;/h2&gt;
+&lt;p&gt;When the user is writing the program in the editor within their browser, it
+continuously runs automated analysis (such as typechecking) against the user’s
+code. In our derivative of MakeCode, the in-browser virtual machine is
+disabled, but the compiler still runs and generates diagnostics. When the user
+clicks the button labeled “Compile and Run” in the bottom left (pictured
+below), the editor gathers the entire user code bundle in source format (see
+the next section), serializes it to JSON, and transmits it to the BTU (the Pi).
+It uses an HTTP POST message to the endpoint at /api/save using the same server
+and port that originally served the editor itself. Conceptually, this is the
+simplest component of BlockyTalky 3. In actual practice, it is the hardest
+component to modify and extend.&lt;/p&gt;
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+&lt;figure id=&#34;figure-blockytalky-3-editor-interface&#34;&gt;
+
+
+  &lt;a data-fancybox=&#34;&#34; href=&#34;./editor.png&#34; data-caption=&#34;BlockyTalky 3 Editor Interface&#34;&gt;
+
+
+  &lt;img src=&#34;./editor.png&#34; alt=&#34;&#34;  &gt;
+&lt;/a&gt;
+
+
+  
+  
+  &lt;figcaption data-pre=&#34;Figure&amp;nbsp;&#34; data-post=&#34;:&amp;nbsp;&#34; class=&#34;numbered&#34;&gt;
+    BlockyTalky 3 Editor Interface
+  &lt;/figcaption&gt;
+
+
+&lt;/figure&gt;
+
+&lt;h3 id=&#34;anatomy-of-a-user-bundle&#34;&gt;Anatomy of a User Bundle&lt;/h3&gt;
+&lt;p&gt;User code files are organized into a virtual file-system within the web editor.
+In each bundle, there is:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;One pxt.json file that encodes information about the files in the bundle and
+their dependencies&lt;/li&gt;
+&lt;li&gt;One main.ts file that contains the main TypeScript code, generated from the
+blocks workspace. This is the entry-point of the program.&lt;/li&gt;
+&lt;li&gt;Optionally, one or more extension TypeScript (.ts) files. Exported functions
+and classes in this file are available in main.ts without needing to be
+imported.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;On the wire between the editor and the orchestrator, these files are serialized
+together as a single JSON-encoded object. That object has filenames as keys and
+file contents as values.&lt;/p&gt;
+&lt;p&gt;The orchestrator manages executing child processes on the BTU. Conceptually,
+this is probably the most complicated part of the process, though it involves
+the least actual code. When a new user code bundle is POST’d to /api/save, the
+orchestrator attempts to decode it, and it then transforms each TypeScript file
+in the user’s code (non-TypeScript resources in the user code are not currently
+supported) according to certain rules that ensure a standard TypeScript
+compiler will be able to resolve dependecies which are abstracted away by the
+novice-friendly PXT editor. Those rules are (see this file on github):&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;For BOTH main.ts and all extension files: the core library is always inserted
+first, and the loops and console libraries are always inserted next, as all
+packages implicitly import them, so each file begins with:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&#34;language-typescript&#34;&gt;import * as _core from &#39;/path/to/pxexec/lib/core-exec&#39;;
+import * as loops from &#39;/path/to/pxexec/lib/loops&#39;;
+import * as console from &#39;/path/to/pxexec/lib/console&#39;;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;
+&lt;p&gt;For BOTH main.ts and all extension files: Any packages marked as dependencies
+in pxt.json (from the user bundle) are imported in order in the same manner
+as the loops library. For example, projects import gpio by default (though
+they can unconfingure that dependency), so most projects will have a line
+import * as gpio from &amp;lsquo;/path/to/pxexec/lib/gpio&amp;rsquo;.&lt;/p&gt;
+&lt;/li&gt;
+&lt;li&gt;
+&lt;p&gt;For ONLY main.ts: Any extension files in the user bundle will be imported,
+and we abuse prototypical inheritance to “merge” the extensions with their
+parent library object. In essence, we make it so that any access to the
+extension object will then fall back to the parent library object by setting
+it as the extension’s prototype, and then we replace the parent object with
+the extension object. This is a bit complicated to explain without getting
+into the meat of prototypical inheritance, but an example: if dmx.ts exists
+in the user bundle, the orchestrator will generate this code:&lt;/p&gt;
+&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&#34;language-typescript&#34;&gt;import * as dmxEX from &#39;./dmx&#39;;
+Object.setPrototypeOf(dmxEX, dmx);
+dmx = dmxEX;
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;For ONLY main.ts: The original text of main.ts is put into a wrapper function
+that is passed to core.main, which defines the operating semantics of the
+runtime environment and performs necessary setup. So, the user’s code is
+transformed into:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&#34;language-typescript&#34;&gt;_core.main(() =&amp;gt; {
+  // user&#39;s code here
+});
+&lt;/code&gt;&lt;/pre&gt;
+&lt;ul&gt;
+&lt;li&gt;For ONLY &lt;code&gt;main.ts&lt;/code&gt;: there is a bug with WebRTC in Node which causes it to
+fail to import in some contexts (including within fibers). In order to avoid
+this bug, we manually import WebRTC and store it in a specified location in
+the core library. The networking module later reads this location and uses it
+when initializing the signaling system. To insert the module, we add the
+following line:&lt;/li&gt;
+&lt;/ul&gt;
+&lt;pre&gt;&lt;code class=&#34;language-typescript&#34;&gt;_core.hacks.wrtc = require(&#39;dss/client/node_modules/wrtc&#39;);
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;After transformation, the code is compiled using a thin typescript compiler
+that does not perform typechecking or any other kind of analysis. It just
+performs TypeScript-to-ES6 transformation (we do this to avoid having to load
+the entire runtime into the compiler for every step, which takes 5-6 seconds on
+even basic programs). The compiler outputs the compiled ES6 files to a
+temporary folder in &lt;code&gt;/tmp&lt;/code&gt;.&lt;/p&gt;
+&lt;p&gt;Finally, the executor (see
+&lt;a href=&#34;https://github.com/LaboratoryForPlayfulComputation/pxexec-orchestrator/blob/master/src/node_executor.ts&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;pxexec-orchestrator/node_executor.ts&lt;/a&gt;)
+spawns a node child process to run the code. If a child process already exists
+from a previous lifecycle iteration, it is killed first. If all of the above
+steps succeed, then HTTP 200 is returned to the editor (so that it can show
+that nifty toast notification informing the user that the new program is
+running), otherwise, HTTP 500 is returned and an error message is displayed.&lt;/p&gt;
+&lt;h3 id=&#34;runtime&#34;&gt;Runtime&lt;/h3&gt;
+&lt;p&gt;At last, the program is running. The behavior of the runtime is to, first,
+resolve all imports and run the body of all of the imported library functions.
+Those library bodies are where packages can configure initialization
+requirements and teardown functions. The core library will run module
+initialization in a predictable way. The import of core itself configures exit
+handlers, so that the process can return some information to the orchestrator
+when it exits (such as the status code, or an exception trace). Finally, the
+node process encounters the &lt;code&gt;_core.main(() =&amp;gt; { ... });&lt;/code&gt; from earlier in our
+&lt;code&gt;main.js&lt;/code&gt; file.&lt;/p&gt;
+&lt;p&gt;&lt;code&gt;_core.main&lt;/code&gt; spawns a fiber for the user code body. Fibers are a loose
+concurrency model that allow us to neatly abstract over operating system
+threads and to avoid unintentionally blocking the Node event loop, even though
+we are running synchronous code that may contain diverging constructs such as
+&lt;code&gt;while (1) {}&lt;/code&gt;. Most importantly, they allow Node to interrupt the user’s
+synchronous code to service events. From this point, the user’s code executes
+apparently synchronously as written, and library service routines will detach
+all user-code handlers into their own fibers.&lt;/p&gt;
+&lt;p&gt;The program will terminate normally when the node event loop has no more
+configured awaiters (i.e. all fibers have terminated, all timers have expired,
+and all event handlers are unconfigured). Some types of programs, by their
+nature, will never terminate, due to having an unlimited wait time for an event
+(such as “when I receive” blocks).&lt;/p&gt;
+&lt;h2 id=&#34;conclusion&#34;&gt;Conclusion&lt;/h2&gt;
+&lt;p&gt;I hope this has been an interesting and instructive (if overly technical) look
+into some of the work that I’ve been up to for the past couple of years. While
+I am no longer working on the BlockyTalky 3 project, I have begun developing my
+own runtime and block-editing framework, &lt;a href=&#34;https://www.wtemple.info/project/serendipity&#34;&gt;Serendipity&lt;/a&gt;,
+which I hope will solve some of the more difficult design challenges discussed
+above.  I view the Serendipity project in many ways as a spiritual successor to
+my involvement in the BlockyTalky 3 work, and I hope that anyone who is
+interested will continue to follow my progress on that project.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

@@ -1,0 +1,1455 @@
+<!DOCTYPE html><html lang="en-us" >
+
+<head>
+
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  
+  
+  
+  <meta name="generator" content="Wowchemy 5.0.0-beta.1 for Hugo">
+  
+
+  
+
+  
+  
+
+  
+  
+  
+  
+  
+    
+    
+    
+  
+  
+
+  <meta name="author" content="Will Temple">
+
+  
+  
+  
+    
+  
+  <meta name="description" content="Getting to know the experimental BlockyTalky 3 runtime, the lifecycle of a user&#39;s program, and how the source code interacts with the Raspberry Pi hardware.">
+
+  
+  <link rel="alternate" hreflang="en-us" href="https://www.wtemple.info/blog/lifecycle-bt3-program/">
+
+  
+
+
+
+
+
+
+
+  
+
+
+
+
+  
+  
+
+  
+  
+  
+  <meta name="theme-color" content="#EF525B">
+  
+
+  
+  
+
+  
+  
+  
+  
+    
+    
+      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/academicons/1.9.0/css/academicons.min.css" integrity="sha512-W4yqoT1+8NLkinBLBZko+dFB2ZbHsYLDdr50VElllRcNt2Q4/GSs6u71UHKxB7S6JEMCp5Ve4xjh3eGQl/HRvg==" crossorigin="anonymous">
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.14.0/css/all.min.css" integrity="sha256-FMvZuGapsJLjouA6k7Eo2lusoAX9i0ShlWFG6qt7SLc=" crossorigin="anonymous">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.css" integrity="sha256-Vzbj7sDDS/woiFS3uNKo8eIuni59rjyNGtXfstRzStA=" crossorigin="anonymous">
+
+    
+    
+    
+      
+    
+    
+      
+      
+        
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/github.min.css" crossorigin="anonymous" title="hl-light">
+          <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/styles/dracula.min.css" crossorigin="anonymous" title="hl-dark" disabled>
+        
+      
+    
+
+    
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.css" integrity="sha512-1xoFisiGdy9nvho8EgXuXvnpR5GAMSjFwp40gSRE3NwdUdIMIKuPa7bqoUhLD0O/5tPNhteAsE5XyyMi5reQVA==" crossorigin="anonymous">
+    
+
+    
+
+    
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/lazysizes/5.2.2/lazysizes.min.js" integrity="sha512-TmDwFLhg3UA4ZG0Eb4MIyT1O1Mb+Oww5kFG0uHqXsdbyZz9DcvYQhKpGgNkamAI6h2lGGZq2X8ftOJvF/XjTUg==" crossorigin="anonymous" async></script>
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+        
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+      
+
+      
+      
+
+      
+    
+
+  
+
+  
+  
+  
+
+  
+  
+  
+  
+  <link rel="stylesheet" href="/css/wowchemy.min.11e14f78ea1fff77e8a6234e5a7d80df.css">
+
+  
+
+
+
+
+
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-H2MLKYFPPQ"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+
+  function gtag() {
+      dataLayer.push(arguments);
+  }
+
+  function trackOutboundLink(url, target) {
+    gtag('event', 'click', {
+         'event_category': 'outbound',
+         'event_label': url,
+         'transport_type': 'beacon',
+         'event_callback': function () {
+           if (target !== '_blank') {
+             document.location = url;
+           }
+         }
+    });
+    console.debug("Outbound link clicked: " + url);
+  }
+
+  function onClickCallback(event) {
+    if ((event.target.tagName !== 'A') || (event.target.host === window.location.host)) {
+      return;
+    }
+    trackOutboundLink(event.target, event.target.getAttribute('target'));  
+  }
+
+  gtag('js', new Date());
+  gtag('config', 'G-H2MLKYFPPQ', { 'anonymize_ip': true });
+
+  
+  document.addEventListener('click', onClickCallback, false);
+</script>
+
+
+  
+
+  
+
+
+  
+  
+
+  
+
+  <link rel="manifest" href="/index.webmanifest">
+  <link rel="icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_32x32_fill_lanczos_center_2.png">
+  <link rel="apple-touch-icon" type="image/png" href="/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_192x192_fill_lanczos_center_2.png">
+
+  <link rel="canonical" href="https://www.wtemple.info/blog/lifecycle-bt3-program/">
+
+  
+  
+  
+  
+  
+  
+  
+    
+  
+  
+  <meta property="twitter:card" content="summary_large_image">
+  
+  <meta property="twitter:site" content="@willmtemple">
+  <meta property="twitter:creator" content="@willmtemple">
+  
+  <meta property="og:site_name" content="wtemple.info">
+  <meta property="og:url" content="https://www.wtemple.info/blog/lifecycle-bt3-program/">
+  <meta property="og:title" content="Lifecycle of a BlockyTalky 3 Program | wtemple.info">
+  <meta property="og:description" content="Getting to know the experimental BlockyTalky 3 runtime, the lifecycle of a user&#39;s program, and how the source code interacts with the Raspberry Pi hardware."><meta property="og:image" content="https://www.wtemple.info/blog/lifecycle-bt3-program/featured.png">
+  <meta property="twitter:image" content="https://www.wtemple.info/blog/lifecycle-bt3-program/featured.png"><meta property="og:locale" content="en-us">
+  
+    
+      <meta property="article:published_time" content="2019-06-13T00:00:00&#43;00:00">
+    
+    <meta property="article:modified_time" content="2020-12-31T20:12:03-05:00">
+  
+
+  
+
+
+
+  
+
+
+  
+  
+  
+  
+  
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.1/cookieconsent.min.js" integrity="sha256-5VhCqFam2Cn+yjw61zbBNrbHVJ6SRydPeKopYlngbiQ=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/cookieconsent2/3.1.1/cookieconsent.min.css" integrity="sha256-zQ0LblD/Af8vOppw18+2anxsuaz3pWYyVWi+bTvTH8Q=" crossorigin="anonymous">
+  
+  <script>
+  window.addEventListener("load", function(){
+    window.cookieconsent.initialise({
+      "palette": {
+        "popup": {
+          "background": "#EF525B",
+          "text": "#EAE7D6"
+        },
+        "button": {
+          "background": "#EAE7D6",
+          "text": "#EF525B"
+        }
+      },
+      "theme": "classic",
+      "content": {
+        "message": "This website uses cookies to ensure you get the best experience on our website.",
+        "dismiss": "Got it!",
+        "link": "Learn more",
+        "href": "https://www.cookiesandyou.com"
+      }
+    })});
+  </script>
+
+
+
+  
+
+
+
+
+
+  <title>Lifecycle of a BlockyTalky 3 Program | wtemple.info</title>
+
+</head>
+
+
+<body id="top" data-spy="scroll" data-offset="70" data-target="#TableOfContents" class="page-wrapper  ">
+
+  
+  
+  
+  
+  
+  <script src="/js/wowchemy-init.js"></script>
+
+  <aside class="search-results" id="search">
+  <div class="container">
+    <section class="search-header">
+
+      <div class="row no-gutters justify-content-between mb-3">
+        <div class="col-6">
+          <h1>Search</h1>
+        </div>
+        <div class="col-6 col-search-close">
+          <a class="js-search" href="#"><i class="fas fa-times-circle text-muted" aria-hidden="true"></i></a>
+        </div>
+      </div>
+
+      <div id="search-box">
+        
+        <input name="q" id="search-query" placeholder="Search..." autocapitalize="off"
+        autocomplete="off" autocorrect="off" spellcheck="false" type="search" class="form-control">
+        
+      </div>
+
+    </section>
+    <section class="section-search-results">
+
+      <div id="search-hits">
+        
+      </div>
+
+    </section>
+  </div>
+</aside>
+
+
+  <div class="page-header">
+    
+
+
+
+
+
+
+
+
+
+
+
+
+<nav class="navbar navbar-expand-lg navbar-light compensate-for-scrollbar" id="navbar-main">
+  <div class="container">
+
+    
+    <div class="d-none d-lg-inline-flex">
+      <a class="navbar-brand" href="/">wtemple.info</a>
+    </div>
+    
+
+    
+    <button type="button" class="navbar-toggler" data-toggle="collapse"
+            data-target="#navbar-content" aria-controls="navbar" aria-expanded="false" aria-label="Toggle navigation">
+    <span><i class="fas fa-bars"></i></span>
+    </button>
+    
+
+    
+    <div class="navbar-brand-mobile-wrapper d-inline-flex d-lg-none">
+      <a class="navbar-brand" href="/">wtemple.info</a>
+    </div>
+    
+
+    
+    
+    <div class="navbar-collapse main-menu-item collapse justify-content-start" id="navbar-content">
+
+      
+      <ul class="navbar-nav d-md-inline-flex">
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link  active" href="/blog"><span>Blog</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#projects"><span>Projects</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+            
+            
+            
+              
+            
+            
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/#contact"><span>Contact</span></a>
+        </li>
+
+        
+        
+
+        
+
+        
+        
+        
+          
+        
+
+        
+
+        
+        
+        
+        
+
+        
+          
+            
+            
+          
+          
+        
+
+        <li class="nav-item">
+          <a class="nav-link " href="/media/resume.pdf"><span>Résumé</span></a>
+        </li>
+
+        
+        
+
+      
+
+        
+      </ul>
+    </div>
+
+    <ul class="nav-icons navbar-nav flex-row ml-auto d-flex pl-md-2">
+
+      
+      
+        
+      
+
+      
+      
+      <li class="nav-item">
+        <a class="nav-link js-search" href="#" aria-label="Search"><i class="fas fa-search" aria-hidden="true"></i></a>
+      </li>
+      
+
+      
+      
+      <li class="nav-item dropdown theme-dropdown">
+        <a href="#" class="nav-link" data-toggle="dropdown" aria-haspopup="true" aria-label="Display preferences">
+          <i class="fas fa-moon" aria-hidden="true"></i>
+        </a>
+        <div class="dropdown-menu">
+          <a href="#" class="dropdown-item js-set-theme-light">
+            <span>Light</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-dark">
+            <span>Dark</span>
+          </a>
+          <a href="#" class="dropdown-item js-set-theme-auto">
+            <span>Automatic</span>
+          </a>
+        </div>
+      </li>
+      
+
+      
+
+    </ul>
+
+  </div>
+</nav>
+
+
+  </div>
+
+  <div class="page-body">
+    <article class="article">
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+
+
+<div class="article-container pt-3">
+  <h1>Lifecycle of a BlockyTalky 3 Program</h1>
+
+  
+  <p class="page-subtitle">Getting to know the experimental BlockyTalky 3 runtime, the lifecycle of a user&rsquo;s program, and how the source code interacts with the Raspberry Pi hardware.</p>
+  
+
+  
+
+
+<div class="article-metadata">
+
+  
+  
+  
+  
+  <div>
+    
+
+  <span class="author-highlighted">
+      Will Temple</span>
+  </div>
+  
+  
+
+  
+  <span class="article-date">
+    
+    
+      
+          Last updated on
+      
+    
+    December 2020
+  </span>
+  
+
+  
+
+  
+
+  
+  
+  
+  
+  
+
+  
+  
+
+</div>
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div class="btn-links mb-3">
+  
+  
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+  
+    
+  
+
+
+
+
+
+
+
+
+
+
+
+</div>
+
+
+</div>
+
+
+<div class="article-header container featured-image-wrapper mt-4 mb-4" style="max-width: 783px; max-height: 501px;">
+  <div style="position: relative">
+    <img src="/blog/lifecycle-bt3-program/featured.png" alt="" class="featured-image">
+    <span class="article-header-caption">Lifecycle Diagram of a BlockyTalky 3 Program</span>
+  </div>
+</div>
+
+
+
+  <div class="article-container">
+
+    <div class="article-style">
+      <p>In February 2018, I started working seriously on the <a href="https://github.com/LaboratoryForPlayfulComputation/pxt-pi" target="_blank" rel="noopener">BlockyTalky 3</a>
+project, a web-based physical computing editor for linux systems. We initially
+chose to target the Raspberry Pi, and we chose to use <a href="https://github.com/Microsoft/pxt" target="_blank" rel="noopener">Microsoft
+MakeCode</a> as the base of the web IDE. MakeCode is a relatively mature
+blocks-based code editor (one of the official platforms of the BBC micro:bit),
+and, for a while, it made a lot of sense to build off of it instead of creating
+a new editor from scratch.</p>
+<p>However, MakeCode was designed to compile users’ Static TypeScript code to
+native ARM machine code assemblies to be flashed to the device over USB or a
+programming interface. In our case, the Raspberry Pi is a fully-functional
+Linux device, so we are able to run whatever Linux software we can manage to
+compile for it as long as it is within the Pi’s ability to run it. So, we
+decided to simply transmit the user’s code from the web editor to the Raspberry
+Pi for execution. This approach had a few major benefits:</p>
+<ol>
+<li>Running the code in a full Linux environment would allow us to rapidly
+develop integrations with the rich ecosystem of Linux and Node software.</li>
+<li>We wouldn’t have to build complex C/C++ libraries to leverage the hardware
+of the Raspberry Pi.</li>
+<li>We would be able to use the Pi itself to apply transformations to user code
+and archive it for research purposes.</li>
+</ol>
+<p>It took a few months of planning, trial, and error to nail down exactly how
+this program lifecycle would work. We finally settled on a procedure with three
+major steps. This is how a user’s program in the browser eventually executes on
+the BlockyTalky Unit (Raspberry Pi).</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-blockytalky-document-flow">
+
+
+  <a data-fancybox="" href="./featured.png" data-caption="BlockyTalky Document Flow">
+
+
+  <img src="./featured.png" alt=""  >
+</a>
+
+
+  
+  
+  <figcaption data-pre="Figure&nbsp;" data-post=":&nbsp;" class="numbered">
+    BlockyTalky Document Flow
+  </figcaption>
+
+
+</figure>
+
+<h2 id="editor">Editor</h2>
+<p>When the user is writing the program in the editor within their browser, it
+continuously runs automated analysis (such as typechecking) against the user’s
+code. In our derivative of MakeCode, the in-browser virtual machine is
+disabled, but the compiler still runs and generates diagnostics. When the user
+clicks the button labeled “Compile and Run” in the bottom left (pictured
+below), the editor gathers the entire user code bundle in source format (see
+the next section), serializes it to JSON, and transmits it to the BTU (the Pi).
+It uses an HTTP POST message to the endpoint at /api/save using the same server
+and port that originally served the editor itself. Conceptually, this is the
+simplest component of BlockyTalky 3. In actual practice, it is the hardest
+component to modify and extend.</p>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<figure id="figure-blockytalky-3-editor-interface">
+
+
+  <a data-fancybox="" href="./editor.png" data-caption="BlockyTalky 3 Editor Interface">
+
+
+  <img src="./editor.png" alt=""  >
+</a>
+
+
+  
+  
+  <figcaption data-pre="Figure&nbsp;" data-post=":&nbsp;" class="numbered">
+    BlockyTalky 3 Editor Interface
+  </figcaption>
+
+
+</figure>
+
+<h3 id="anatomy-of-a-user-bundle">Anatomy of a User Bundle</h3>
+<p>User code files are organized into a virtual file-system within the web editor.
+In each bundle, there is:</p>
+<ul>
+<li>One pxt.json file that encodes information about the files in the bundle and
+their dependencies</li>
+<li>One main.ts file that contains the main TypeScript code, generated from the
+blocks workspace. This is the entry-point of the program.</li>
+<li>Optionally, one or more extension TypeScript (.ts) files. Exported functions
+and classes in this file are available in main.ts without needing to be
+imported.</li>
+</ul>
+<p>On the wire between the editor and the orchestrator, these files are serialized
+together as a single JSON-encoded object. That object has filenames as keys and
+file contents as values.</p>
+<p>The orchestrator manages executing child processes on the BTU. Conceptually,
+this is probably the most complicated part of the process, though it involves
+the least actual code. When a new user code bundle is POST’d to /api/save, the
+orchestrator attempts to decode it, and it then transforms each TypeScript file
+in the user’s code (non-TypeScript resources in the user code are not currently
+supported) according to certain rules that ensure a standard TypeScript
+compiler will be able to resolve dependecies which are abstracted away by the
+novice-friendly PXT editor. Those rules are (see this file on github):</p>
+<ul>
+<li>For BOTH main.ts and all extension files: the core library is always inserted
+first, and the loops and console libraries are always inserted next, as all
+packages implicitly import them, so each file begins with:</li>
+</ul>
+<pre><code class="language-typescript">import * as _core from '/path/to/pxexec/lib/core-exec';
+import * as loops from '/path/to/pxexec/lib/loops';
+import * as console from '/path/to/pxexec/lib/console';
+</code></pre>
+<ul>
+<li>
+<p>For BOTH main.ts and all extension files: Any packages marked as dependencies
+in pxt.json (from the user bundle) are imported in order in the same manner
+as the loops library. For example, projects import gpio by default (though
+they can unconfingure that dependency), so most projects will have a line
+import * as gpio from &lsquo;/path/to/pxexec/lib/gpio&rsquo;.</p>
+</li>
+<li>
+<p>For ONLY main.ts: Any extension files in the user bundle will be imported,
+and we abuse prototypical inheritance to “merge” the extensions with their
+parent library object. In essence, we make it so that any access to the
+extension object will then fall back to the parent library object by setting
+it as the extension’s prototype, and then we replace the parent object with
+the extension object. This is a bit complicated to explain without getting
+into the meat of prototypical inheritance, but an example: if dmx.ts exists
+in the user bundle, the orchestrator will generate this code:</p>
+</li>
+</ul>
+<pre><code class="language-typescript">import * as dmxEX from './dmx';
+Object.setPrototypeOf(dmxEX, dmx);
+dmx = dmxEX;
+</code></pre>
+<ul>
+<li>For ONLY main.ts: The original text of main.ts is put into a wrapper function
+that is passed to core.main, which defines the operating semantics of the
+runtime environment and performs necessary setup. So, the user’s code is
+transformed into:</li>
+</ul>
+<pre><code class="language-typescript">_core.main(() =&gt; {
+  // user's code here
+});
+</code></pre>
+<ul>
+<li>For ONLY <code>main.ts</code>: there is a bug with WebRTC in Node which causes it to
+fail to import in some contexts (including within fibers). In order to avoid
+this bug, we manually import WebRTC and store it in a specified location in
+the core library. The networking module later reads this location and uses it
+when initializing the signaling system. To insert the module, we add the
+following line:</li>
+</ul>
+<pre><code class="language-typescript">_core.hacks.wrtc = require('dss/client/node_modules/wrtc');
+</code></pre>
+<p>After transformation, the code is compiled using a thin typescript compiler
+that does not perform typechecking or any other kind of analysis. It just
+performs TypeScript-to-ES6 transformation (we do this to avoid having to load
+the entire runtime into the compiler for every step, which takes 5-6 seconds on
+even basic programs). The compiler outputs the compiled ES6 files to a
+temporary folder in <code>/tmp</code>.</p>
+<p>Finally, the executor (see
+<a href="https://github.com/LaboratoryForPlayfulComputation/pxexec-orchestrator/blob/master/src/node_executor.ts" target="_blank" rel="noopener">pxexec-orchestrator/node_executor.ts</a>)
+spawns a node child process to run the code. If a child process already exists
+from a previous lifecycle iteration, it is killed first. If all of the above
+steps succeed, then HTTP 200 is returned to the editor (so that it can show
+that nifty toast notification informing the user that the new program is
+running), otherwise, HTTP 500 is returned and an error message is displayed.</p>
+<h3 id="runtime">Runtime</h3>
+<p>At last, the program is running. The behavior of the runtime is to, first,
+resolve all imports and run the body of all of the imported library functions.
+Those library bodies are where packages can configure initialization
+requirements and teardown functions. The core library will run module
+initialization in a predictable way. The import of core itself configures exit
+handlers, so that the process can return some information to the orchestrator
+when it exits (such as the status code, or an exception trace). Finally, the
+node process encounters the <code>_core.main(() =&gt; { ... });</code> from earlier in our
+<code>main.js</code> file.</p>
+<p><code>_core.main</code> spawns a fiber for the user code body. Fibers are a loose
+concurrency model that allow us to neatly abstract over operating system
+threads and to avoid unintentionally blocking the Node event loop, even though
+we are running synchronous code that may contain diverging constructs such as
+<code>while (1) {}</code>. Most importantly, they allow Node to interrupt the user’s
+synchronous code to service events. From this point, the user’s code executes
+apparently synchronously as written, and library service routines will detach
+all user-code handlers into their own fibers.</p>
+<p>The program will terminate normally when the node event loop has no more
+configured awaiters (i.e. all fibers have terminated, all timers have expired,
+and all event handlers are unconfigured). Some types of programs, by their
+nature, will never terminate, due to having an unlimited wait time for an event
+(such as “when I receive” blocks).</p>
+<h2 id="conclusion">Conclusion</h2>
+<p>I hope this has been an interesting and instructive (if overly technical) look
+into some of the work that I’ve been up to for the past couple of years. While
+I am no longer working on the BlockyTalky 3 project, I have begun developing my
+own runtime and block-editing framework, <a href="/project/serendipity">Serendipity</a>,
+which I hope will solve some of the more difficult design challenges discussed
+above.  I view the Serendipity project in many ways as a spiritual successor to
+my involvement in the BlockyTalky 3 work, and I hope that anyone who is
+interested will continue to follow my progress on that project.</p>
+
+    </div>
+
+    
+
+
+
+
+
+
+<div class="article-tags">
+  
+  <a class="badge badge-light" href="/tag/education/">Education</a>
+  
+  <a class="badge badge-light" href="/tag/software/">Software</a>
+  
+</div>
+
+
+
+<div class="share-box" aria-hidden="true">
+  <ul class="share">
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://twitter.com/intent/tweet?url=https://www.wtemple.info/blog/lifecycle-bt3-program/&amp;text=Lifecycle%20of%20a%20BlockyTalky%203%20Program" target="_blank" rel="noopener" class="share-btn-twitter">
+          <i class="fab fa-twitter"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.facebook.com/sharer.php?u=https://www.wtemple.info/blog/lifecycle-bt3-program/&amp;t=Lifecycle%20of%20a%20BlockyTalky%203%20Program" target="_blank" rel="noopener" class="share-btn-facebook">
+          <i class="fab fa-facebook"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="mailto:?subject=Lifecycle%20of%20a%20BlockyTalky%203%20Program&amp;body=https://www.wtemple.info/blog/lifecycle-bt3-program/" target="_blank" rel="noopener" class="share-btn-email">
+          <i class="fas fa-envelope"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://www.linkedin.com/shareArticle?url=https://www.wtemple.info/blog/lifecycle-bt3-program/&amp;title=Lifecycle%20of%20a%20BlockyTalky%203%20Program" target="_blank" rel="noopener" class="share-btn-linkedin">
+          <i class="fab fa-linkedin-in"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="whatsapp://send?text=Lifecycle%20of%20a%20BlockyTalky%203%20Program%20https://www.wtemple.info/blog/lifecycle-bt3-program/" target="_blank" rel="noopener" class="share-btn-whatsapp">
+          <i class="fab fa-whatsapp"></i>
+        </a>
+      </li>
+    
+      
+      
+      
+        
+      
+      
+      
+      <li>
+        <a href="https://service.weibo.com/share/share.php?url=https://www.wtemple.info/blog/lifecycle-bt3-program/&amp;title=Lifecycle%20of%20a%20BlockyTalky%203%20Program" target="_blank" rel="noopener" class="share-btn-weibo">
+          <i class="fab fa-weibo"></i>
+        </a>
+      </li>
+    
+  </ul>
+</div>
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    
+
+
+
+  
+  
+  
+    
+  
+  
+  
+  <div class="media author-card content-widget-hr">
+    
+      
+      <a href="https://www.wtemple.info"><img class="avatar mr-3 avatar-rect" src="/authors/wtemple/avatar_hu27f7dc34c9db8fd2b063f3fba6be9864_118492_270x270_fill_q75_lanczos_center.jpg" alt="Will Temple"></a>
+    
+
+    <div class="media-body">
+      <h5 class="card-title"><a href="https://www.wtemple.info">Will Temple</a></h5>
+      <h6 class="card-subtitle">Software Engineer</h6>
+      <p class="card-text">Thinking about building software and the philosophy of teaching programming</p>
+      <ul class="network-icon" aria-hidden="true">
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/#contact" >
+        <i class="fas fa-envelope"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://twitter.com/willmtemple" target="_blank" rel="noopener">
+        <i class="fab fa-twitter"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://github.com/willmtemple" target="_blank" rel="noopener">
+        <i class="fab fa-github"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+      
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="https://www.linkedin.com/in/willmtemple" target="_blank" rel="noopener">
+        <i class="fab fa-linkedin"></i>
+      </a>
+    </li>
+  
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    <li>
+      <a href="/media/resume.pdf" >
+        <i class="ai ai-cv"></i>
+      </a>
+    </li>
+  
+</ul>
+
+    </div>
+  </div>
+
+
+  
+
+
+
+
+
+
+
+<section id="comments">
+  
+    <div id="commento"></div>
+
+<script src="https://cdn.commento.io/js/commento.js" defer></script>
+
+  
+</section>
+
+
+
+
+
+
+
+
+
+
+
+
+  </div>
+</article>
+  </div>
+
+  <div class="page-footer">
+    
+    
+    <div class="container">
+      <footer class="site-footer">
+  
+
+  <p class="powered-by">
+    © William Temple 2020
+  </p>
+
+  
+  
+
+
+
+
+
+
+  <p class="powered-by">
+  Created using <a href="https://github.com/wowchemy/starter-academic" />Wowchemy</a>, an open-source framework for <a href="https://gohugo.io">Hugo</a>.
+  </p>
+</footer>
+
+    </div>
+    
+  </div>
+
+  
+<div id="modal" class="modal fade" role="dialog">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Cite</h5>
+        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+          <span aria-hidden="true">&times;</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        <pre><code class="tex hljs"></code></pre>
+      </div>
+      <div class="modal-footer">
+        <a class="btn btn-outline-primary my-1 js-copy-cite" href="#" target="_blank">
+          <i class="fas fa-copy"></i> Copy
+        </a>
+        <a class="btn btn-outline-primary my-1 js-download-cite" href="#" target="_blank">
+          <i class="fas fa-download"></i> Download
+        </a>
+        <div id="modal-error"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+      
+
+    
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js" integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0=" crossorigin="anonymous"></script>
+
+      
+      
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.imagesloaded/4.1.4/imagesloaded.pkgd.min.js" integrity="sha256-lqvxZrPLtfffUl2G/e7szqSvPBILGbwmsGE1MKlOi0Q=" crossorigin="anonymous"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.isotope/3.0.6/isotope.pkgd.min.js" integrity="sha256-CBrpuqrMhXwcLLUd5tvQ4euBHCdh7wGlDfNz8vbu/iI=" crossorigin="anonymous"></script>
+      
+
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/fancybox/3.5.7/jquery.fancybox.min.js" integrity="sha256-yt2kYMy0w8AbtF89WXb2P1rfjcP/HTHLT7097U8Y5b8=" crossorigin="anonymous"></script>
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/instant.page/5.1.0/instantpage.min.js" integrity="sha512-1+qUtKoh9XZW7j+6LhRMAyOrgSQKenQ4mluTR+cvxXjP1Z54RxZuzstR/H9kgPXQsVB8IW7DMDFUJpzLjvhGSQ==" crossorigin="anonymous"></script>
+
+      
+
+      
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/highlight.min.js" integrity="sha512-TDKKr+IvoqZnPzc3l35hdjpHD0m+b2EC2SrLEgKDRWpxf2rFCxemkgvJ5kfU48ip+Y+m2XVKyOCD85ybtlZDmw==" crossorigin="anonymous"></script>
+        
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/10.2.0/languages/lisp.min.js"></script>
+        
+      
+
+    
+
+    
+    
+      <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.min.js" integrity="sha512-SeiQaaDh73yrb56sTW/RgVdi/mMqNeM2oBwubFHagc5BkixSpP1fvqF47mKzPGWYSSy4RwbBunrJBQ4Co8fRWA==" crossorigin="anonymous"></script>
+    
+
+    
+    
+    <script>const code_highlighting = true;</script>
+    
+
+    
+    
+    
+    
+    
+    
+    <script>
+      const search_config = {"indexURI":"/index.json","minLength":1,"threshold":0.3};
+      const i18n = {"no_results":"No results found","placeholder":"Search...","results":"results found"};
+      const content_type = {
+        'post': "Posts",
+        'project': "Projects",
+        'publication' : "Publications",
+        'event' : "Events",
+        'slides' : "Slides"
+        };
+    </script>
+    
+
+    
+    
+
+    
+    
+    <script id="search-hit-fuse-template" type="text/x-template">
+      <div class="search-hit" id="summary-{{key}}">
+      <div class="search-hit-content">
+        <div class="search-hit-name">
+          <a href="{{relpermalink}}">{{title}}</a>
+          <div class="article-metadata search-hit-type">{{type}}</div>
+          <p class="search-hit-description">{{snippet}}</p>
+        </div>
+      </div>
+      </div>
+    </script>
+    
+
+    
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/fuse.js/3.2.1/fuse.min.js" integrity="sha256-VzgmKYmhsGNNN4Ph1kMW+BjoYJM2jV5i4IlFoeZA9XI=" crossorigin="anonymous"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mark.js/8.11.1/jquery.mark.min.js" integrity="sha256-4HLtjeVgH0eIB3aZ9mLYF6E8oU5chNdjU6p6rrXpl9U=" crossorigin="anonymous"></script>
+    
+
+    
+    
+
+    
+    
+    
+
+    
+    
+
+    
+    
+
+    
+    
+    
+    
+    
+    
+    
+    
+    
+    
+      
+    
+    
+    
+    
+    <script src="/js/wowchemy.min.d0d321ad6c45c08297f04e4ff03367d3.js"></script>
+
+    
+
+
+
+
+
+
+</body>
+</html>

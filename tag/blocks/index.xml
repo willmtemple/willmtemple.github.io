@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Blocks | wtemple.info</title>
+    <link>https://www.wtemple.info/tag/blocks/</link>
+      <atom:link href="https://www.wtemple.info/tag/blocks/index.xml" rel="self" type="application/rss+xml" />
+    <description>Blocks</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>© William Temple 2020</copyright><lastBuildDate>Tue, 01 Dec 2020 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://www.wtemple.info/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>Blocks</title>
+      <link>https://www.wtemple.info/tag/blocks/</link>
+    </image>
+    
+    <item>
+      <title>Serendipity</title>
+      <link>https://www.wtemple.info/project/serendipity/</link>
+      <pubDate>Tue, 01 Dec 2020 00:00:00 +0000</pubDate>
+      <guid>https://www.wtemple.info/project/serendipity/</guid>
+      <description>&lt;p&gt;&lt;strong&gt;Serendipity&lt;/strong&gt; is a new prototype programming environment for desktops and the
+web. Currently, it is in the proof-of-concept stage. It is powered by a tiny
+core language that is:&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;purely-functional.&lt;/li&gt;
+&lt;li&gt;dynamically-typed.&lt;/li&gt;
+&lt;li&gt;lazy-evaluated.&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p&gt;The design and overall philosophy of Serendipity is inspired by the many
+wonderful programming languages that I have had the pleasure to use, primarily
+&lt;a href=&#34;https://racket-lang.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Racket&lt;/a&gt;, JavaScript, Rust, and Clojure. My greatest aspiration for it
+is that students and experienced programmers alike might use it to discover
+powerful and fundamental ideas in Computer Science through exploring an
+interactive programming environment.&lt;/p&gt;
+&lt;p&gt;I designed Serendipity with the intent of developing several front-ends. If I
+succeed, then it should be easy to develop completely new front-ends for
+serendipity that use a variety of editing modalities. Currently, there are two
+front-ends: the basic blocks-based editor featured in the screenshot above and
+a Lisp-like front-end that I use for debugging. The blocks editor uses React.js
+and MobX state management. The UI is powered by ordinary SVG.&lt;/p&gt;
+&lt;p&gt;Currently, Serendipity is implemented entirely in TypeScript, though I intend
+to rewrite some or all of it in Rust (or hopefully in a Serendipity front-end)
+as needed.&lt;/p&gt;
+&lt;h2 id=&#34;compared-to-other-block-programming-engines&#34;&gt;Compared to Other Block Programming Engines&lt;/h2&gt;
+&lt;p&gt;Serendipity&amp;rsquo;s block editor was borne out of frustrations with existing block
+programming toolkits, in particular Google&amp;rsquo;s &lt;a href=&#34;https://developers.google.com/blockly/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Blockly&lt;/a&gt;. The
+fundamental problem with Blockly and its many forks is that it treats blocks as
+merely a representation of text. When a blockly program is compiled, it is
+transformed into text, and then the text is processed using conventional
+compilers/runtimes. While this has some advantages, it introduces a lot of
+complexity in the process of returning useful diagnostic information to the
+user in the block workspace. It also means that, in some cases, text programs
+cannot be represented by blocks (try writing a higher-order program in a
+Blockly-based language!).&lt;/p&gt;
+&lt;p&gt;Serendipity&amp;rsquo;s editor instead views blocks as a direct representation of the
+program&amp;rsquo;s &lt;em&gt;abstract syntax tree&lt;/em&gt;. Serendipity&amp;rsquo;s editor is therefore a
+&lt;em&gt;structure editor&lt;/em&gt;, and when a user manipulates the blocks, they manipulate the
+abstract syntax tree directly. This means that there is no parser in the web
+editor, as the principal data structure of the program is the syntax tree,
+rather than a text file as would be the case with conventional text-based or
+Blockly-based programming.&lt;/p&gt;
+&lt;h2 id=&#34;compiler&#34;&gt;Compiler&lt;/h2&gt;
+&lt;p&gt;Serendipity&amp;rsquo;s compiler, though simple, contains some unusual transformations
+that the compiler-interested may find intriguing. While the core runtime
+language is purely-functional, the front-end languages allow for procedural
+programming. For example, consider the following iterative program (using the
+Lisp front-end):&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-lisp&#34;&gt;; A sequence of integers starting at n
+(define (seq n) (cons n (seq (+ n 1))))
+
+(main [proc
+  (for-in [i (seq 0)] (do [proc
+    (if (&amp;gt;= i 10) (break))
+    (print i)
+  ]))
+])
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;In this front-end, &lt;code&gt;proc&lt;/code&gt; is a fundamental constructor for a procedural block
+of code. While this construction appears similar to &lt;code&gt;begin&lt;/code&gt; in Scheme (by
+design), its implementation is much different. When this program is compiled,
+Serendipity will apply a series of transformation that reduce procedural
+programs into functional programs using a continuation-passing style with an
+explicit &amp;ldquo;world&amp;rdquo; argument.&lt;/p&gt;
+&lt;p&gt;In the language of Serendipity&amp;rsquo;s runtime, the &lt;code&gt;main&lt;/code&gt; program above is reduced
+to a pure functional computation (formatted and annotated for &amp;ldquo;readability&amp;rdquo;):&lt;/p&gt;
+&lt;pre&gt;&lt;code class=&#34;language-text&#34;&gt;;; Main entry point, with some shim code for bootstrapping CPS
+;; __k defines 
+((λ__k.λ__w.(
+ ;; The fundamental looping constructor provides a continuation for breaking
+ λ__brk.(
+  ;; Iteration recursively binds a single iteration as a continuation until
+  ;; the loop is broken, either by an explicit `(break)` or by the iterator
+  ;; returning nil. (`seq` below is bound in the environment.)
+  λ__loop.((__loop __w) (seq 0)) (
+   ;; Fixed-point combinator allows for recursive binding of the loop
+   ;; body
+   λf.(λx.(x x) λx.(f (x x))) λ__loop.λ__w.λ__iter.(
+    ;; Test for iterator termination
+    (== __iter ∅)
+    ;; If the iterator terminated (produced nil), we call the break
+    ;; continuation
+    ? (__brk __w)
+    ;; Otherwise, run the iterator body, which starts with an (if) construction
+    : (λi.(λ__w.((λ__k.λ__w.(λ__next.(
+     ;; Do you recognize this? It&#39;s just the test for (&amp;gt;= i 10) that appeared
+     ;; in the base program. Pure expressions are reproduced verbatim.
+     (&amp;gt;= i 10)
+     ;; The explicit call to break is rendered as an immediate call to the
+     ;; breaking continuation 
+     ? (__brk __w)
+     ;; Otherwise, evaluate the __next continuation (specifies the continuation
+     ;; that handles the result of the entire (if) construction)
+     : (__next __w))
+     ;; The next continuation calls the `print` core builtin function.
+     ;; Eventually this will be modeled as a monadic structure. For now it
+     ;; simply returns the world as-is
+     λ__w.(
+       (λ__k.λ__w.((__core.print i) ((λ__k.λ__w.(__k __w) __k) __w)) __k)
+       __w))
+     ;; Evaluate __iter[1] (next value in the iterator) and loop over it
+     ;; by finally cascading the world arguments and continuations
+     λ__w.(λ__w.((__loop __w) __iter[1]) __w)) __w) __w) __iter[0])
+   )))
+   ;; This is bootstrapping code, though you can see that the &amp;quot;world&amp;quot; is
+   ;; initialized to nil in the final argument (keep in mind that this is
+   ;; reversed, so nil is actually the *first* argument evaluated and passed
+   ;; into this CPS-call expression).
+   λ__w.((λ__k.λ__w.(__k __w) __k) __w)) λ__w.__w) ∅)
+&lt;/code&gt;&lt;/pre&gt;
+&lt;p&gt;The choice to use this extremely simple Church-ish language, though not very
+readable (that said, I don&amp;rsquo;t think it is that much worse than assembly
+language), enables all of the theoretical static analysis and optimization that
+is only useful in pure-functional programs (to summarize: it is very easy to
+statically analyze a pure-functional program). I believe that this pattern of
+continuation-passing combined with dead-code and tail-call elimination along
+with the essence of laziness (you&amp;rsquo;ll find that &lt;em&gt;all&lt;/em&gt; of the function calls
+above are tail recursive except for the infinite, where we are assisted by
+laziness) provides a very promising substrate for building Serendipity far into
+the future.&lt;/p&gt;
+&lt;h2 id=&#34;whats-next&#34;&gt;What&amp;rsquo;s Next?&lt;/h2&gt;
+&lt;p&gt;In addition to adding enough features to the editor to take Serendipity from a
+proof-of-concept stage to a usable Alpha stage (currently, you can&amp;rsquo;t save a
+program and have to use the debugging console to spawn new blocks), I am
+developing a non-Lisp-like textual representation of Serendipity programs that
+will have two front-ends: a text parser and a text-like structure editor
+(similar to the incredibly powerful editor of the &lt;a href=&#34;https://hazel.org/&#34; target=&#34;_blank&#34; rel=&#34;noopener&#34;&gt;Hazel&lt;/a&gt; project) as a
+counterpart to the blocks-based structure editor.&lt;/p&gt;
+&lt;p&gt;Eventually, I will rewrite most of the block rendering code to use either HTML
+&lt;code&gt;canvas&lt;/code&gt; or a GPU subsystem (WebGL or WebGPU), as I am reaching the limits of
+what I can easily accomplish within React and SVG due to uncontrollable
+accumulations of SVG jank.&lt;/p&gt;
+&lt;p&gt;Beyond the editor, the next monster problem to solve is to define and implement
+a type system. I have become completely enamored with TypeScript&amp;rsquo;s approach to
+type-checking JavaScript: interface-driven optional typing. That said,
+TypeScript isn&amp;rsquo;t perfect, and there are mistakes that were made along its
+development into the beloved language that it is today, and I now have the
+benefit of being able to learn from those mistakes. I am attracted to the idea
+of truly optional typing, in which a user &lt;em&gt;might&lt;/em&gt; provide a type (but doesn&amp;rsquo;t
+have to), and we can check it statically, with no runtime cost, if a type is
+provided.&lt;/p&gt;
+&lt;p&gt;However, implementing a type checker isn&amp;rsquo;t the reason it&amp;rsquo;s a monster problem.
+Writing some software for basic optional typing is simple enough. The
+monstrosity comes from trying to figure out how to represent optional type
+annotations in a blocks-based programming language. None of the block
+environments that I&amp;rsquo;m familiar with do this very satisfactorially (or at all),
+so if you are aware of any, send me an email or leave a comment below!&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>

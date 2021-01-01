@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>Peer Review | wtemple.info</title>
+    <link>https://www.wtemple.info/tag/peer-review/</link>
+      <atom:link href="https://www.wtemple.info/tag/peer-review/index.xml" rel="self" type="application/rss+xml" />
+    <description>Peer Review</description>
+    <generator>Wowchemy (https://wowchemy.com)</generator><language>en-us</language><copyright>© William Temple 2020</copyright><lastBuildDate>Wed, 01 Jan 2020 00:00:00 +0000</lastBuildDate>
+    <image>
+      <url>https://www.wtemple.info/images/icon_hu0b7a4cb9992c9ac0e91bd28ffd38dd00_9727_512x512_fill_lanczos_center_2.png</url>
+      <title>Peer Review</title>
+      <link>https://www.wtemple.info/tag/peer-review/</link>
+    </image>
+    
+    <item>
+      <title>PeerReviewWeb</title>
+      <link>https://www.wtemple.info/project/prweb/</link>
+      <pubDate>Wed, 01 Jan 2020 00:00:00 +0000</pubDate>
+      <guid>https://www.wtemple.info/project/prweb/</guid>
+      <description>&lt;p&gt;PeerReviewWeb is a platform that supports the integration of Peer Reviews into
+coursework. During or after submitting work for an assignment in a course,
+students will review and comment on each others&#39; work.&lt;/p&gt;
+&lt;p&gt;It supports multiple courses, configurable instruction staff and student
+rosters, multiple assignments and multi-stage assignments, with configurable
+assignment group settings, and configurable review parameters including dynamic
+review forms.&lt;/p&gt;
+</description>
+    </item>
+    
+  </channel>
+</rss>
