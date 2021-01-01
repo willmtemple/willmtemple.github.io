@@ -1,6 +1,6 @@
 ---
 title: PeerReviewWeb
-summary: C#/ASP.NET web application to facilitate pedagogical peer reviews
+summary: C#/ASP.NET web application to facilitate pedagogical peer reviews.
 tags:
 - Education
 - Peer Review

@@ -26,8 +26,6 @@ url_video: ""
 #   E.g. `slides = "example-slides"` references `content/slides/example-slides.md`.
 #   Otherwise, set `slides = ""`.
 slides: ""
-
-highlight_languages: ['lisp', 'common-lisp']
 ---
 
 **Serendipity** is a new prototype programming environment for desktops and the
